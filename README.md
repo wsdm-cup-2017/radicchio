@@ -11,4 +11,10 @@ There are two frameworks - supervised framework and unsupervised framework.  You
 
 NOTE: The data is too large, so you may download it by yourself. You should have all the data files stored in the data/ folder (try ln -s !!).  
 
-NOTE: The training of the word vectors are still ongoing...
+TODO:  
+(1) Handle large word vectors/large names, professions, nationalities. Solution: Particiate word vectors/Build inverted index?  
+(2) What's the input and output? Ask TA
+(3) Need more spaces on the virtual machine  
+(4) Kenall' score implementation (related to 5)  
+(5) Cross validation problem: random split? or we should make validated names invisible to training?  
+

@@ -1,8 +1,7 @@
 import numpy as np
 from abc import ABCMeta, abstractmethod
 from utils import read_labeled_data, get_distance, get_accuracy
-from sklearn.svm import SVR
-
+from sklearn.svm import SVR, SVC
 #new in sklearn 0.18
 from sklearn.model_selection import KFold 
 
@@ -23,24 +22,41 @@ class SupervisedBase(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, learner_type = "7_SVM", parameters = {"kernel":"rbf", "C":10}):
         """
-        Use SVR with linear kernel and C = 0.1 as default
-        You may overwrite it and tune the parameters by yourself
-        """
-        self.learner = SVR(kernel = "linear", C = 0.1)
+        Use SVC with linear kernel and C = 0.1 as default
+        You can add more different types of learners
+	"""
+	self.learner_type = learner_type
+	if learner_type == "SVR":
+	    self.learner = SVR(kernel = parameters["kernel"], C = parameters["C"])
+	elif learner_type == "7_SVM":
+	    self.learner = [SVC(kernel = parameters["kernel"], C = parameters["C"] ) for i in range(7)]
 
     def predict(self, X):
         """
         Return : a 1-D Numpy array in which each element is the predicted score for each input pair (represented in feature vector)
         """
-        return self.learner.predict(X)
+	if self.learner_type == "SVR":
+	    return self.learner.predict(X)
+        elif self.learner_type == "7_SVM":
+	    Y = np.array([self.learner[i].predict(X) for i in range(7)])
+    	    #return the sum of the predictions from 7 SVMs
+	    return np.sum(Y, axis = 0)
 
     def train(self, X, Y):
-        self.learner.fit(X, Y)
+	if self.learner_type == "SVR":
+	    self.learner.fit(X, Y)
+        elif self.learner_type == "7_SVM":
+	    #train 7 SVMs
+	    for i in range(7):
+            	copyY  = Y.copy()
+	    	copyY[Y < i+1] = 0
+	    	copyY[Y >= i+1] = 1
+	    	self.learner[i].fit(X, copyY)
 
     @abstractmethod
-    def extract_features(self):
+    def extract_features(self, pairs):
         """
         You should formulate your extracted features as a 2-D Numpy array X.
         For X, each row may epresents a feature vector of a (person-value) pair instance .
@@ -50,7 +66,10 @@ class SupervisedBase(object):
         """
         raise NotImplementedError
     
-    def evaluate(self, labeled_data_path = "../data/profession.train"): 
+    def test(self, input_data, output_dir):
+        pass
+
+    def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False): 
         """
         For the supervised models, we measure the performance by 5-fold cross validation.
         """
@@ -63,17 +82,32 @@ class SupervisedBase(object):
         X = self.extract_features(pairs)
         
         #cross validation
-        distances = []
-        accuracies = []
+        in_distances = []
+        in_accuracies = []
+        val_distances = []
+        val_accuracies = []
         for train_index, valid_index in kf.split(X):
             trainX, validX = X[train_index], X[valid_index]     
             trainY, validY = Y[train_index], Y[valid_index]     
             self.train(trainX, trainY)
-            predY = self.predict(validX)
-            distances.append(get_distance(validY, predY))
-            accuracies.append(get_accuracy(validY, predY))
-        
+            
+	    #evalute : in sample
+	    predY = self.predict(trainX)
+            in_distances.append(get_distance(trainY, predY))
+            in_accuracies.append(get_accuracy(trainY, predY))
+	    
+	    #evaluate : validation
+	    predY = self.predict(validX)
+	    val_distances.append(get_distance(validY, predY))
+            val_accuracies.append(get_accuracy(validY, predY))
+	    if verbose is True:
+		for i, (y, py) in enumerate(zip(validY, predY)):
+		    print ", ".join(pairs[i]).ljust(50) , "True:", y, "/ Predicted:", py
+            
         #print out the evaluation
-        distance = np.mean(distances)
-        accuracy = np.mean(accuracies)
-        print "Average Score Difference = %f, Accuracy = %f" %(distance, accuracy)
+        in_distance = np.mean(in_distances)
+        in_accuracy = np.mean(in_accuracies)
+        val_distance = np.mean(val_distances)
+        val_accuracy = np.mean(val_accuracies)
+        print "(In Sample)Average Score Difference = %f, Accuracy = %f" %(in_distance, in_accuracy)
+        print "(Validated)Average Score Difference = %f, Accuracy = %f" %(val_distance, val_accuracy)

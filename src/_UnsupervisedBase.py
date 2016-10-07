@@ -44,7 +44,7 @@ class UnsupervisedBase(object):
         """
         raise NotImplementedError
     
-    def evaluate(self, labeled_data_path = "../data/profession.train"): 
+    def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False): 
         
         #read the data and extract features
         self.extract_features()
@@ -55,6 +55,9 @@ class UnsupervisedBase(object):
         #predicting
         pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
         predY = self.predict(pairs)
+	if verbose is True:
+            for i, (y, py) in enumerate(zip(Y, predY)):
+	        print ", ".join(pairs[i]).ljust(50) , "True:", y, "/ Predicted:", py
         
         #evaluating
         distance = get_distance(Y, predY)

@@ -1,4 +1,5 @@
 import numpy as np
+import re
 """
 This file contains some general functions to be used for other programs.
 """
@@ -42,6 +43,26 @@ def read_labeled_data(labeled_data_path):
             pairs.append((name, value))
             truths.append(float(true_score))
     return pairs, np.array(truths)
+
+def normalize_name(name):
+    """
+    Normalize a person name so that it can be mapped to the text
+    """
+    name = "_".join(name.split()) #replace space with "_"
+    name  = re.sub(r'[^\w\s]' , "", name.decode("utf-8"), re.UNICODE) #remove punctuations
+    name = name.lower() # turn into lower case
+    return name
+
+def normalize_profession(profession):
+    """
+    Normalize a profession so that it can be mapped to the text
+    NOTE: Currently, we only return the last token 
+    """
+    profession  = re.sub(r'[^\w\s]' , " ", profession.decode("utf-8"), re.UNICODE)#remove punctuations
+    profession = profession.split()[-1] # only return the last token
+    profession = profession.lower()# turn into lower case
+    return profession
+
 
 def get_distance(truths, preds):
     """
