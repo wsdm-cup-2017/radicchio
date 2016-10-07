@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from utils import read_labeled_data, get_distance, get_accuracy
 from sklearn.svm import SVR, SVC
 #new in sklearn 0.18
-from sklearn.model_selection import KFold 
+from sklearn.model_selection import GroupKFold, KFold 
 
 """
 This is the base abstract class for supervised models.
@@ -73,11 +73,16 @@ class SupervisedBase(object):
         """
         For the supervised models, we measure the performance by 5-fold cross validation.
         """
-        kf = KFold(n_splits = 5, shuffle = True, random_state = 0) 
+        #kf = KFold(n_splits = 5, shuffle = True, random_state = 0) 
+        kf = GroupKFold(n_splits = 5) 
         
         #read labeled data
         pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
         
+	#group person names
+	distinct_name_list = list(set([name for name, value in pairs]))
+	groups = np.array([distinct_name_list.index(name) for name, value in pairs])
+
         #extract features
         X = self.extract_features(pairs)
         
@@ -86,7 +91,7 @@ class SupervisedBase(object):
         in_accuracies = []
         val_distances = []
         val_accuracies = []
-        for train_index, valid_index in kf.split(X):
+        for train_index, valid_index in kf.split(X, Y, groups):
             trainX, validX = X[train_index], X[valid_index]     
             trainY, validY = Y[train_index], Y[valid_index]     
             self.train(trainX, trainY)
@@ -101,8 +106,9 @@ class SupervisedBase(object):
 	    val_distances.append(get_distance(validY, predY))
             val_accuracies.append(get_accuracy(validY, predY))
 	    if verbose is True:
+                val_pairs = np.array(pairs)[valid_index]
 		for i, (y, py) in enumerate(zip(validY, predY)):
-		    print ", ".join(pairs[i]).ljust(50) , "True:", y, "/ Predicted:", py
+		    print ", ".join(val_pairs[i]).ljust(50) , "True:", y, "/ Predicted:", py
             
         #print out the evaluation
         in_distance = np.mean(in_distances)
