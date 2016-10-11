@@ -44,6 +44,20 @@ class UnsupervisedBase(object):
         """
         raise NotImplementedError
     
+    def test(self, input_path, output_path):
+	"""
+	Read from the input path and ouput the prediction to the output path.
+	"""
+	pairs = []
+	with open(input_path, "r") as in_f:
+	    for line in in_f:
+		pairs.append(line.strip().split("\t")[0:2])
+	
+	Y = self.predict(pairs)
+	with open(output_path, "w") as out_f:
+	     for i, (name, value) in enumerate(pairs):
+		 out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
+    
     def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False): 
         
         #read the data and extract features

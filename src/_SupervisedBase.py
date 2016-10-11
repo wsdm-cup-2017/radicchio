@@ -66,8 +66,19 @@ class SupervisedBase(object):
         """
         raise NotImplementedError
     
-    def test(self, input_data, output_dir):
-        pass
+    def test(self, input_path, output_path):
+	"""
+	Read from the input path and ouput the prediction to the output path.
+	"""
+	pairs = []
+	with open(input_path, "r") as in_f:
+	    for line in in_f:
+		pairs.append(line.strip().split("\t")[0:2])
+	X = self.extract_features(pairs)
+	Y = self.predict(X)
+	with open(output_path, "w") as out_f:
+	     for i, (name, value) in enumerate(out_f):
+		 out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
 
     def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False): 
         """
