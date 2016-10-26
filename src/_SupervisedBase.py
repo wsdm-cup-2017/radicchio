@@ -2,6 +2,7 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 from utils import read_labeled_data, get_distance, get_accuracy
 from sklearn.svm import SVR, SVC
+from sklearn.ensemble import RandomForestRegressor
 #new in sklearn 0.18
 from sklearn.model_selection import GroupKFold, KFold 
 
@@ -22,7 +23,7 @@ class SupervisedBase(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, learner_type = "7_SVM", parameters = {"kernel":"rbf", "C":10}):
+    def __init__(self, learner_type = "SVR", parameters = {"kernel":"rbf", "C":10}):
         """
         Use SVC with linear kernel and C = 0.1 as default
         You can add more different types of learners
@@ -31,21 +32,23 @@ class SupervisedBase(object):
 	if learner_type == "SVR":
 	    self.learner = SVR(kernel = parameters["kernel"], C = parameters["C"])
 	elif learner_type == "7_SVM":
-	    self.learner = [SVC(kernel = parameters["kernel"], C = parameters["C"] ) for i in range(7)]
-
+	    self.learner = [SVC(kernel = parameters["kernel"], C = parameters["C"] ) for i in range(7) ]
+	elif learner_type == "RandomForest":
+		self.learner = RandomForestRegressor(n_estimators=parameters["n_estimators"], n_jobs=4)
+        
     def predict(self, X):
         """
         Return : a 1-D Numpy array in which each element is the predicted score for each input pair (represented in feature vector)
         """
-	if self.learner_type == "SVR":
-	    return self.learner.predict(X)
+	if self.learner_type == "SVR" or self.learner_type == "RandomForest":
+	    return np.array([ round(y) for y in self.learner.predict(X)])
         elif self.learner_type == "7_SVM":
 	    Y = np.array([self.learner[i].predict(X) for i in range(7)])
     	    #return the sum of the predictions from 7 SVMs
 	    return np.sum(Y, axis = 0)
 
     def train(self, X, Y):
-	if self.learner_type == "SVR":
+	if self.learner_type == "SVR" or self.learner_type == "RandomForest":
 	    self.learner.fit(X, Y)
         elif self.learner_type == "7_SVM":
 	    #train 7 SVMs
