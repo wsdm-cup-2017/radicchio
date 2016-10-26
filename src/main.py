@@ -1,5 +1,5 @@
 from UnsupervisedModels import AllMF, RandomGuess, MeanGuess
-from SupervisedModels import AllZeroFeature, WordVector
+from SupervisedModels import AllZeroFeature, WordVector, FreebaseFeature
 import numpy as np
 
 """
@@ -10,7 +10,7 @@ if  __name__ == "__main__":
     np.random.seed(0)
     print "======== RandomGuess ======="
     model = RandomGuess()
-    model.evaluate(verbose = False)
+    model.evaluate(verbose=False)
     """ 
     print "======== MeanGuess ======="
     model = MeanGuess()
@@ -26,4 +26,7 @@ if  __name__ == "__main__":
     """ 
     print "======== WordVector ======="
     model = WordVector()
-    model.evaluate(verbose = True)
+    model.evaluate(verbose=False)
+    print "======== FreebaseFeatures ======="
+    model = FreebaseFeature()
+    model.evaluate()
