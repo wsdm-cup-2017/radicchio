@@ -45,6 +45,13 @@ def Content_process( sentence ):
     # and return the result.
     return( " ".join( meaningful_words )) 
     
+
+
+####### 100 sample generation for validation #########
+pro_kb_df=pd.read_csv("C:/triple-scoring/professions.kb",sep='\t',header=None,encoding='utf-8')
+pro_kb_df.columns=['Profession'] 
+
+
     
 ##############################################################################################
 ##############  generating 200 profession files from wiki sentences ##########################
