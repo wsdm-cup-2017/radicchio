@@ -12,7 +12,7 @@ def all_words(terms):
 
 def reduce_w2v(w2v, words, output_path):
 	with open(output_path, "w") as f:
-		f.write("%d %d\n" % (len(words), w2v[w2v.vocab.keys()[0]]))
+		f.write("%d %d\n" % (len(words), 300))
 		for word in sorted(list(words)):
 			if word in w2v.vocab:
 				f.write(word+" ")
@@ -20,7 +20,7 @@ def reduce_w2v(w2v, words, output_path):
 				f.write(" ".join(vector) + "\n")
 
 if __name__ == "__main__":
-	#w2v = word2vec.load(sys.argv[1])
+	w2v = word2vec.Word2Vec.load(sys.argv[1])
 	words = set()
 	prefix = "../data/"
 	for file_name in ["professions", "nationalities", "persons"]:
@@ -28,4 +28,4 @@ if __name__ == "__main__":
 		terms = map(normalize, terms)	
 		S = all_words(terms)
 		words = words.union(S)
-	reduce_w2v(w2v, words, "../data/word2vec_reduced.txt")
+	reduce_w2v(w2v, words, "../data/word2vec_reduced-2.txt")

@@ -2,6 +2,7 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 from utils import *
 from sklearn.svm import SVR, SVC
+import cPickle
 
 """
 This is the base abstract class for supervised models.
@@ -41,7 +42,7 @@ class SupervisedBase(object):
 			Y = np.array([self.learner[i].predict(X) for i in range(7)])
 			#return the sum of the predictions from 7 SVMs
 			return self.normalize_prediction( np.sum(Y, axis = 0))
-	
+		
 	def normalize_prediction(self, Y):
 		Y[Y > 7] = 7
 		Y[Y < 0] = 0
@@ -69,6 +70,18 @@ class SupervisedBase(object):
 		"""
 		raise NotImplementedError
 	
+	def train_and_save(self,  labeled_data_path , save_path, X_path = None):
+		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
+		X = self.extract_features(pairs, X_path = X_path)
+		self.train(X, Y)
+		tmp = self.w2v
+		self.w2v = None
+		cPickle.dump(self.learner, open(save_path, "w"))
+		self.w2v = tmp
+
+	def load(self, load_path):
+		self.learner = cPickle.load(open(load_path, "r"))
+
 	def test(self, input_path, output_path):
 		"""
 		Read from the input path and ouput the prediction to the output path.
@@ -80,9 +93,9 @@ class SupervisedBase(object):
 		X = self.extract_features(pairs)
 		Y = self.predict(X)
 		with open(output_path, "w") as out_f:
-			 for i, (name, value) in enumerate(out_f):
-				 out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
-
+			 for i, (name, value) in enumerate(pairs):
+			 	out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
+	
 	def evaluate(self, labeled_data_path, X_path = None,  verbose = False, n_fold = 5): 
 		"""
 		For the supervised models, we measure the performance by 5-fold cross validation.
