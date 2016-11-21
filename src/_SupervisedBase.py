@@ -1,9 +1,7 @@
 import numpy as np
 from abc import ABCMeta, abstractmethod
-from utils import read_labeled_data, get_distance, get_accuracy
+from utils import *
 from sklearn.svm import SVR, SVC
-#new in sklearn 0.18
-from sklearn.model_selection import GroupKFold, KFold 
 
 """
 This is the base abstract class for supervised models.
@@ -13,118 +11,137 @@ You should formulate your extracted features as a 2-D Numpy array (X) and  your 
 For X, each row may epresents a feature vector of a (person-value) pair instance .
 
 Todo :
-    1. Model saving/loading
-    2. Input the testing data and output the prediction in a file 
+	1. Model saving/loading
+	2. Input the testing data and output the prediction in a file 
 """
 class SupervisedBase(object):
-    """
-    An abstract model class
-    """
-    __metaclass__ = ABCMeta
-
-    def __init__(self, learner_type = "7_SVM", parameters = {"kernel":"rbf", "C":10}):
-        """
-        Use SVC with linear kernel and C = 0.1 as default
-        You can add more different types of learners
 	"""
-	self.learner_type = learner_type
-	if learner_type == "SVR":
-	    self.learner = SVR(kernel = parameters["kernel"], C = parameters["C"])
-	elif learner_type == "7_SVM":
-	    self.learner = [SVC(kernel = parameters["kernel"], C = parameters["C"] ) for i in range(7)]
-
-    def predict(self, X):
-        """
-        Return : a 1-D Numpy array in which each element is the predicted score for each input pair (represented in feature vector)
-        """
-	if self.learner_type == "SVR":
-	    return self.learner.predict(X)
-        elif self.learner_type == "7_SVM":
-	    Y = np.array([self.learner[i].predict(X) for i in range(7)])
-    	    #return the sum of the predictions from 7 SVMs
-	    return np.sum(Y, axis = 0)
-
-    def train(self, X, Y):
-	if self.learner_type == "SVR":
-	    self.learner.fit(X, Y)
-        elif self.learner_type == "7_SVM":
-	    #train 7 SVMs
-	    for i in range(7):
-            	copyY  = Y.copy()
-	    	copyY[Y < i+1] = 0
-	    	copyY[Y >= i+1] = 1
-	    	self.learner[i].fit(X, copyY)
-
-    @abstractmethod
-    def extract_features(self, pairs):
-        """
-        You should formulate your extracted features as a 2-D Numpy array X.
-        For X, each row may epresents a feature vector of a (person-value) pair instance .
-        Return: 2-D Numpy array (X)
-        NOTE : Remember to scale the features if you use a distance-based learner like SVR
-        NOTE : You may store your features in the disk if it taks much time to extract
-        """
-        raise NotImplementedError
-    
-    def test(self, input_path, output_path):
+	An abstract model class
 	"""
-	Read from the input path and ouput the prediction to the output path.
-	"""
-	pairs = []
-	with open(input_path, "r") as in_f:
-	    for line in in_f:
-		pairs.append(line.strip().split("\t")[0:2])
-	X = self.extract_features(pairs)
-	Y = self.predict(X)
-	with open(output_path, "w") as out_f:
-	     for i, (name, value) in enumerate(out_f):
-		 out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
+	__metaclass__ = ABCMeta
 
-    def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False): 
-        """
-        For the supervised models, we measure the performance by 5-fold cross validation.
-        """
-        #kf = KFold(n_splits = 5, shuffle = True, random_state = 0) 
-        kf = GroupKFold(n_splits = 5) 
-        
-        #read labeled data
-        pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
-        
-	#group person names
-	distinct_name_list = list(set([name for name, value in pairs]))
-	groups = np.array([distinct_name_list.index(name) for name, value in pairs])
+	def __init__(self, learner_type = "7_SVM", parameters = {"kernel":"rbf", "C":10}):
+		"""
+		Use SVC with linear kernel and C = 0.1 as default
+		You can add more different types of learners
+		"""
+		self.learner_type = learner_type
+		if learner_type == "SVR":
+			self.learner = SVR(kernel = parameters["kernel"], C = parameters["C"])
+		elif learner_type == "7_SVM":
+			self.learner = [SVC(kernel = parameters["kernel"], C = parameters["C"] ) for i in range(7)]
 
-        #extract features
-        X = self.extract_features(pairs)
-        
-        #cross validation
-        in_distances = []
-        in_accuracies = []
-        val_distances = []
-        val_accuracies = []
-        for train_index, valid_index in kf.split(X, Y, groups):
-            trainX, validX = X[train_index], X[valid_index]     
-            trainY, validY = Y[train_index], Y[valid_index]     
-            self.train(trainX, trainY)
-            
-	    #evalute : in sample
-	    predY = self.predict(trainX)
-            in_distances.append(get_distance(trainY, predY))
-            in_accuracies.append(get_accuracy(trainY, predY))
-	    
-	    #evaluate : validation
-	    predY = self.predict(validX)
-	    val_distances.append(get_distance(validY, predY))
-            val_accuracies.append(get_accuracy(validY, predY))
-	    if verbose is True:
-                val_pairs = np.array(pairs)[valid_index]
-		for i, (y, py) in enumerate(zip(validY, predY)):
-		    print ", ".join(val_pairs[i]).ljust(50) , "True:", y, "/ Predicted:", py
-            
-        #print out the evaluation
-        in_distance = np.mean(in_distances)
-        in_accuracy = np.mean(in_accuracies)
-        val_distance = np.mean(val_distances)
-        val_accuracy = np.mean(val_accuracies)
-        print "(In Sample)Average Score Difference = %f, Accuracy = %f" %(in_distance, in_accuracy)
-        print "(Validated)Average Score Difference = %f, Accuracy = %f" %(val_distance, val_accuracy)
+	def predict(self, X):
+		"""
+		Return : a 1-D Numpy array in which each element is the predicted score for each input pair (represented in feature vector)
+		"""
+		if self.learner_type == "SVR":
+			return self.learner.predict(X)
+		elif self.learner_type == "7_SVM":
+			Y = np.array([self.learner[i].predict(X) for i in range(7)])
+			#return the sum of the predictions from 7 SVMs
+			return np.sum(Y, axis = 0)
+
+	def train(self, X, Y):
+		if self.learner_type == "SVR":
+			self.learner.fit(X, Y)
+		elif self.learner_type == "7_SVM":
+			#train 7 SVMs
+			for i in range(7):
+				copyY  = Y.copy()
+				copyY[Y < i+1] = 0
+				copyY[Y >= i+1] = 1
+				self.learner[i].fit(X, copyY)
+
+	@abstractmethod
+	def extract_features(self, pairs):
+		"""
+		You should formulate your extracted features as a 2-D Numpy array X.
+		For X, each row may epresents a feature vector of a (person-value) pair instance .
+		Return: 2-D Numpy array (X)
+		NOTE : Remember to scale the features if you use a distance-based learner like SVR
+		NOTE : You may store your features in the disk if it taks much time to extract
+		"""
+		raise NotImplementedError
+	
+	def test(self, input_path, output_path):
+		"""
+		Read from the input path and ouput the prediction to the output path.
+		"""
+		pairs = []
+		with open(input_path, "r") as in_f:
+			for line in in_f:
+				pairs.append(line.strip().split("\t")[0:2])
+		X = self.extract_features(pairs)
+		Y = self.predict(X)
+		with open(output_path, "w") as out_f:
+			 for i, (name, value) in enumerate(out_f):
+				 out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
+
+	def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False, n_fold = 3): 
+		"""
+		For the supervised models, we measure the performance by 5-fold cross validation.
+		"""
+		
+		#read labeled data
+		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
+
+		#extract features
+		X = self.extract_features(pairs)
+		
+		#group person names
+		Xs = []
+		Ys = []
+		Ps = []
+		prev_group = None
+		for i, p in enumerate(pairs):
+			if p[0] != prev_group:
+				prev_group = p[0]
+				Xs.append([])
+				Ys.append([])
+				Ps.append([])
+			Xs[-1].append(X[i].tolist())
+			Ys[-1].append(Y[i])
+			Ps[-1].append(p)
+		for i in range(len(Xs)):
+			Xs[i] = np.array(Xs[i])
+			Ys[i] = np.array(Ys[i])
+		
+		#shuffle
+		Xs, Ys, Ps = shuffleXY(Xs, Ys, Ps)
+		
+
+		fold_size = len(Xs) / n_fold
+		in_acc, in_asd, in_tau = [], [], []
+		val_acc, val_asd, val_tau = [], [], []
+		for i in range(n_fold):
+			trainXs, trainYs, testXs, testYs, trainPs, testPs = train_test_split(Xs, Ys, Ps, fold_size*i, fold_size*(i+1))	
+			trainX = np.concatenate(trainXs)
+			trainY = np.concatenate(trainYs)
+			self.train(trainX, trainY)
+			
+			score1 = []
+			score2 = []
+			for testX, testY, testP in zip(testXs, testYs, testPs):
+				predY = self.predict(testX)
+				score1.append(predY.tolist())
+				score2.append(testY.tolist())
+				if verbose is True:
+					for py, y, p in zip(predY, testY, testP):
+						print ", ".join(p).ljust(50) , "True:", y, "/ Predicted:", py
+			val_acc.append(compute_acc(score1, score2))
+			val_asd.append(compute_asd(score1, score2))
+			val_tau.append(compute_tau(score1, score2))
+			
+			score1 = []
+			score2 = []
+			for trainX, trainY in zip(trainXs, trainYs):
+				predY = self.predict(trainX)
+				score1.append(predY.tolist())
+				score2.append(trainY.tolist())
+			in_acc.append(compute_acc(score1, score2))
+			in_asd.append(compute_asd(score1, score2))
+			in_tau.append(compute_tau(score1, score2))
+		
+		print "(In sample) Accuracy : %f, Distance : %f, Kendall tau : %f" % (np.mean(in_acc), np.mean(in_asd), np.mean(in_tau)) 
+		print "(Validation) Accuracy : %f, Distance : %f, Kendall tau : %f" % (np.mean(val_acc), np.mean(val_asd), np.mean(val_tau)) 
