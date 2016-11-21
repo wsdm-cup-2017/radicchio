@@ -52,8 +52,8 @@ if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
  
     #train word vectors
-    model = word2vec.Word2Vec(sentences, size=300, min_count = 3, workers = 24, window = 5, sg  = 0) # CBOW
+    model = word2vec.Word2Vec(sentences, size=300, min_count = 2, workers = 24, window = 10, sg  = 0) # CBOW
     
     #store the model
-    model.save('../data/word2vec.mod')
+    model.save('../data/word2vec-2.mod')
 

@@ -20,7 +20,7 @@ class SupervisedBase(object):
 	"""
 	__metaclass__ = ABCMeta
 
-	def __init__(self, learner_type = "7_SVM", parameters = {"kernel":"rbf", "C":10}):
+	def __init__(self, learner_type = "SVR", parameters = {"kernel":"rbf", "C":10}):
 		"""
 		Use SVC with linear kernel and C = 0.1 as default
 		You can add more different types of learners
@@ -36,11 +36,16 @@ class SupervisedBase(object):
 		Return : a 1-D Numpy array in which each element is the predicted score for each input pair (represented in feature vector)
 		"""
 		if self.learner_type == "SVR":
-			return self.learner.predict(X)
+			return self.normalize_prediction( self.learner.predict(X))
 		elif self.learner_type == "7_SVM":
 			Y = np.array([self.learner[i].predict(X) for i in range(7)])
 			#return the sum of the predictions from 7 SVMs
-			return np.sum(Y, axis = 0)
+			return self.normalize_prediction( np.sum(Y, axis = 0))
+	
+	def normalize_prediction(self, Y):
+		Y[Y > 7] = 7
+		Y[Y < 0] = 0
+		return np.array(map(lambda x : int(round(x)), Y))
 
 	def train(self, X, Y):
 		if self.learner_type == "SVR":
@@ -78,7 +83,7 @@ class SupervisedBase(object):
 			 for i, (name, value) in enumerate(out_f):
 				 out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
 
-	def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False, n_fold = 3): 
+	def evaluate(self, labeled_data_path, X_path = None,  verbose = False, n_fold = 5): 
 		"""
 		For the supervised models, we measure the performance by 5-fold cross validation.
 		"""
@@ -87,7 +92,7 @@ class SupervisedBase(object):
 		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
 
 		#extract features
-		X = self.extract_features(pairs)
+		X = self.extract_features(pairs, X_path = X_path)
 		
 		#group person names
 		Xs = []

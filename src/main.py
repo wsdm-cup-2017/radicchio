@@ -27,5 +27,9 @@ if  __name__ == "__main__":
 	model.evaluate()
 	""" 
 	print "======== WordVector ======="
-	model = WordVector()
-	model.evaluate(verbose = True)
+	#model = WordVector()
+	#model.evaluate(labeled_data_path = "../data/nationality.train", verbose = True)
+	
+	model = WordVector(w2v_path = None) 
+	model.evaluate(labeled_data_path = "../data/profession.train", X_path = "../data/X_profession.npy", verbose = True)
+	model.evaluate(labeled_data_path = "../data/nationality.train", X_path = "../data/X_nationality.npy", verbose = True)

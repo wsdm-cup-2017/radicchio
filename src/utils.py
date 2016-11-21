@@ -33,6 +33,14 @@ def build_all_names_int(all_names_path = "../data/persons"):
 			cnt +=1 
 	return N_map
 
+def read_one_column(file_path):
+	X = []
+	with open(file_path, "r") as f:
+		for line in f:
+			x = line.strip().split("\t")[0]
+			X.append(x)	
+	return X
+
 def read_labeled_data(labeled_data_path):
 	"""
 	Read the labeld data (.train) from the path.
@@ -66,6 +74,15 @@ def normalize_profession(profession):
 	profession = profession.lower()# turn into lower case
 	return profession
 
+def normalize(text):
+	"""
+	Normalize a profession so that it can be mapped to the text
+	Return : tuple 
+	"""
+	text  = re.sub(r'[^\w\s]' , " ", text.decode("utf-8"), re.UNICODE)#remove punctuations
+	text = text.lower()
+	terms = text.split()
+	return terms 
 
 def get_distance(truths, preds):
 	"""
@@ -108,39 +125,26 @@ def kendall_tau(scores1, scores2, p = 0.5):
 	# All possible pairs i, j with i < j.
 	pairs = itertools.combinations(range(0, len(scores1)), 2)
 	penalty = 0.0
-	# Count the number of pairs in the second list (the ground truth), where
-	# pairs with equal scores count only p (default 0.5, see above).
 	num_ordered = 0.0
 	for i, j in pairs:
-		# The ranks of scores i and j in both score lists.
 		a_i = ranks1[i]
 		a_j = ranks1[j]
 		b_i = ranks2[i]
 		b_j = ranks2[j]
-		# CASE 1: Scores i and j are different in both lists. Then there is a
-		# penalty of 1.0 iff the order does not match.
 		if a_i != a_j and b_i != b_j:
 			if (a_i < a_j and b_i < b_j) or (a_i > a_j and b_i > b_j):
 				pass
 			else:
 				penalty += 1
-		# CASE 2: Scores i and j are the same in both lists. Then there is no
-		# penalty.
 		elif a_i == a_j and b_i == b_j:
 			pass
-		# CASE 3: Scores i and j are the same in one list, but different in the
-		# other. Then there is a penalty of p (default value 0.5, see above).
 		else:
 			penalty += p
-		# Count this pair as 1 if the scores in list 2 are different, otherwise
-		# as p (default value 0.5, see above).
 		if b_i != b_j:
 			num_ordered += 1
 		else:
 			num_ordered += p
-	# Return the average penalty.
 	return penalty / num_ordered
-
 
 def compute_acc(scores1, scores2, delta = 2):
 	num_all = 0.0
