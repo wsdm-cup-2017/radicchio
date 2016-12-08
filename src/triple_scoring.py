@@ -46,28 +46,23 @@ if __name__ == "__main__":
 	professions = read_one_column(os.path.join(args.inputDataset, "professions"))
 	nationalities = read_one_column(os.path.join(args.inputDataset, "nationalities"))
 
-	
 	#load models
-	w2v_path = os.path.join(args.modelDir, "word2vec_reduced.txt")
+	w2v_path = os.path.join(args.modelDir, "vectors.txt")
 	modelP = WordVector(w2v_path = w2v_path) 
 	modelP.load(os.path.join(args.modelDir, "profession.mod"))
 	modelN = WordVector(w2v_path = None) 
 	modelN.w2v = modelP.w2v
 	modelN.w2v_dim = modelP.w2v_dim
 	modelN.load(os.path.join(args.modelDir, "nationality.mod"))
-	
-        try:
-            if args.inpusFiles is not None:
-                for input_path in args.inputFiles:
-                        input_path = input_path[0]
-                        input_type = check_type(input_path, professions, nationalities)
-                        file_name = os.path.split(input_path)[1]
-                        if input_type == "profession":
-                                modelP.test(input_path, os.path.join(args.outputDir, file_name))
-                        elif input_type == "nationality":
-                                modelN.test(input_path, os.path.join(args.outputDir, file_name))
-        except:
-            pass
+        if args.inputFiles is not None:
+            for input_path in args.inputFiles:
+                    input_path = input_path[0]
+                    input_type = check_type(input_path, professions, nationalities)
+                    file_name = os.path.split(input_path)[1]
+                    if input_type == "profession":
+                            modelP.test(input_path, os.path.join(args.outputDir, file_name))
+                    elif input_type == "nationality":
+                            modelN.test(input_path, os.path.join(args.outputDir, file_name))
 	if os.path.isfile(args.inputDataset):
 		file_name = os.path.split(args.inputDataset)[1]
                 file_path = args.inputDataset

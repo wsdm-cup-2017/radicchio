@@ -2,6 +2,7 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 from utils import *
 from sklearn.svm import SVR, SVC
+from sklearn.preprocessing import StandardScaler
 import cPickle
 
 """
@@ -36,6 +37,7 @@ class SupervisedBase(object):
 		"""
 		Return : a 1-D Numpy array in which each element is the predicted score for each input pair (represented in feature vector)
 		"""
+                X = self.scaler.transform(X)
 		if self.learner_type == "SVR":
 			return self.normalize_prediction( self.learner.predict(X))
 		elif self.learner_type == "7_SVM":
@@ -49,6 +51,8 @@ class SupervisedBase(object):
 		return np.array(map(lambda x : int(round(x)), Y))
 
 	def train(self, X, Y):
+		self.scaler = StandardScaler()
+		X = self.scaler.fit_transform(X)
 		if self.learner_type == "SVR":
 			self.learner.fit(X, Y)
 		elif self.learner_type == "7_SVM":
@@ -76,11 +80,11 @@ class SupervisedBase(object):
 		self.train(X, Y)
 		tmp = self.w2v
 		self.w2v = None
-		cPickle.dump(self.learner, open(save_path, "w"))
+		cPickle.dump((self.learner, self.scaler), open(save_path, "w"))
 		self.w2v = tmp
 
 	def load(self, load_path):
-		self.learner = cPickle.load(open(load_path, "r"))
+		(self.learner, self.scaler) = cPickle.load(open(load_path, "r"))
 
 	def test(self, input_path, output_path):
 		"""
@@ -103,10 +107,8 @@ class SupervisedBase(object):
 		
 		#read labeled data
 		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
-
 		#extract features
 		X = self.extract_features(pairs, X_path = X_path)
-		
 		#group person names
 		Xs = []
 		Ys = []
