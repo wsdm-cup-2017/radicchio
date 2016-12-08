@@ -14,7 +14,8 @@ def gen_freebase_features(
     Filters freebase features for the given training files.
     """
 
-    feature_vectorizer = CountVectorizer()
+    tokenizer = lambda sentence: sentence.strip().split()
+    feature_vectorizer = CountVectorizer(tokenizer=tokenizer)
     known_features = set()
 
     with open(freebase_feature_filename, 'r') as freebase_file:
@@ -37,9 +38,7 @@ def gen_freebase_features(
 
             freebase_id = parts[1]
             freebase_features = parts[2] # Space separated
-            persistence_store[freebase_id] = feature_vectorizer.transform(freebase_features.strip().split())
-
-    print feature_vectorizer.vocabulary_
+            persistence_store[freebase_id] = feature_vectorizer.transform([freebase_features.strip()])
 
     cPickle.dump(feature_vectorizer.vocabulary_, open('freebase_feature_mapping.pkl', 'w'))
     persistence_store.close()
