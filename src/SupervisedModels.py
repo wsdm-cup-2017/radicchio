@@ -20,7 +20,7 @@ class WordVector(SupervisedBase):
 	Use word vectors as features.
 	Currently, we only support loading fetaures from files.
 	"""
-	def __init__(self, w2v_path = "../models/word2vec_reduced.txt"):
+	def __init__(self, w2v_path = "../models/vectors.txt"):
 		if w2v_path is not None:
 			self.w2v = word2vec.Word2Vec.load_word2vec_format(w2v_path)
 			self.w2v_dim = self.w2v[self.w2v.vocab.keys()[0]].shape[0]
@@ -59,6 +59,6 @@ class WordVector(SupervisedBase):
 				if word in self.w2v.vocab:
 					vec += self.w2v[word]
 					cnt += 1
-			if cnt >= 0:
+			if cnt > 0:
 				vec /= cnt
 			return vec
