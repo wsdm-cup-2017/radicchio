@@ -37,8 +37,7 @@ class WordVector(SupervisedBase):
 				x = np.hstack((vec1, vec2))
 				X.append(x)
 			X = np.array(X)
-			#np.save("../data/X_profession.npy", X)
-			#np.save("../data/X_nationality.npy", X)
+			#np.save(X_path, X)
 		else:
 			X = np.load(X_path)
 
@@ -55,7 +54,7 @@ class WordVector(SupervisedBase):
 		else:
 			vec = np.zeros(self.w2v_dim)
 			cnt = 0.0
-			for word in text:
+			for word in term:
 				if word in self.w2v.vocab:
 					vec += self.w2v[word]
 					cnt += 1
