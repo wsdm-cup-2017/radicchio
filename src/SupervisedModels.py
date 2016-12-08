@@ -1,6 +1,5 @@
 import numpy as np
 from _SupervisedBase import SupervisedBase
-from sklearn.preprocessing import StandardScaler
 from utils import *
 from gensim.models import word2vec
 
@@ -41,9 +40,10 @@ class WordVector(SupervisedBase):
 		else:
 			X = np.load(X_path)
 
-		#standardly scale features
-		scaler = StandardScaler()
-		X = scaler.fit_transform(X)
+		
+                #standardly scale features
+		#scaler = StandardScaler()
+		#X = scaler.fit_transform(X)
 		return X
 
 	def map_w2v(self, text):
