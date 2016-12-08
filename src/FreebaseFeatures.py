@@ -11,7 +11,9 @@ from _SupervisedBase import SupervisedBase
 
 class FreebaseFeatures(SupervisedBase):
 
-	def __init__(self, freebase_features):
+	def __init__(self, freebase_features, labels):
+		assert labels is not None and isinstance(labels, list)
+		
 		SupervisedBase.__init__(self)
 
 		self.features = shelve.open(freebase_features, 'r')
@@ -34,10 +36,9 @@ class FreebaseFeatures(SupervisedBase):
 
 		self.labels = {}
 		index = 0
-		with open('../data/professions', 'r') as label_file:
-			for line in label_file.xreadlines():
-				self.labels[line.strip()] = index
-				index += 1
+		for lab in labels:
+			self.labels[lab.strip()] = index
+			index += 1
 
 		self.num_labels = index
 
