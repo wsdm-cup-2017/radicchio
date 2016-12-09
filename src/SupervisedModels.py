@@ -13,7 +13,7 @@ class AllZeroFeature(SupervisedBase):
 	"""
 	def extract_features(self, pairs, X_path = None):
 		return np.zeros((len(pairs),2))
-	def train_and_save(self,  labeled_data_path , save_path, X_path = None):
+        def train_and_save(self,  labeled_data_path , save_path, X_path = None):
             pass
 	def load(self, load_path):
             pass
@@ -70,7 +70,3 @@ class WordVector(SupervisedBase):
 		self.w2v = None
 		cPickle.dump((self.learner, self.scaler), open(save_path, "w"))
 		self.w2v = tmp
-
-	def load(self, load_path):
-		(self.learner, self.scaler) = cPickle.load(open(load_path, "r"))
-

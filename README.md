@@ -11,11 +11,4 @@ There are two frameworks - supervised framework and unsupervised framework.  You
 
 NOTE: The data is too large, so you may download it by yourself. You should have all the data files stored in the data/ folder (try ln -s !!).  
 
-Download word vecotrs : word2vec\_reduced.txt 
-https://drive.google.com/file/d/0Bzbvajlfod0EaXFaTXJ6RWwxb0U/view?usp=sharing 
- 
-TODO:   
-(1) Need more spaces on the virtual machine  
-(2) Add more training data (especially for nationalities) 
-(3) Test submission 
-(4) Nationality clustering 
+Train the models, please first run "main.py".  

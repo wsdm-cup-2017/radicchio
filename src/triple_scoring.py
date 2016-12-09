@@ -4,6 +4,8 @@ import glob
 import os
 from UnsupervisedModels import AllMF, RandomGuess, MeanGuess
 from SupervisedModels import AllZeroFeature, WordVector
+from FreebaseFeatures import FreebaseFeatures
+from Ensemble import Ensemble
 import numpy as np
 import cPickle
 from utils import *
@@ -47,12 +49,13 @@ if __name__ == "__main__":
 	nationalities = read_one_column(os.path.join(args.inputDataset, "nationalities"))
 
 	#load models
-        """
-	modelP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels="../data/professions")
+	"""
+        modelP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels= professions)
 	modelP.load(os.path.join(args.modelDir, "freebase_profession.mod"))
-        modelN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels="../data/nationalities")
+        modelN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels= nationalities)
 	modelN.load(os.path.join(args.modelDir, "freebase_nationality.mod"))
-        
+        """
+
 	modelWP = WordVector(w2v_path = "../models/vectors.bin") 
 	modelFP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=professions)
         modelP = Ensemble(model_list = [modelWP, modelFP])
@@ -62,13 +65,13 @@ if __name__ == "__main__":
         modelFN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=nationalities)
         modelN = Ensemble(model_list = [modelWN, modelFN])
 	modelN.load(os.path.join(args.modelDir, "ensemble_nationality.mod"))
-	"""
+	
 
-        modelP = WordVector(w2v_path = "../models/vectors.bin") 
-	modelP.load(os.path.join(args.modelDir, "word2vec_profession.mod"))
-	modelN = WordVector(w2v_path = "../models/vectors.bin") 
-	modelN.load(os.path.join(args.modelDir, "word2vec_nationality.mod"))
-        
+        #modelP = WordVector(w2v_path = "../models/vectors.bin") 
+	#modelP.load(os.path.join(args.modelDir, "word2vec_profession.mod"))
+	#modelN = WordVector(w2v_path = "../models/vectors.bin") 
+	#modelN.load(os.path.join(args.modelDir, "word2vec_nationality.mod"))
+
         if args.inputFiles is not None:
             for input_path in args.inputFiles:
                     input_path = input_path[0]

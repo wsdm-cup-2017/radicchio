@@ -55,7 +55,7 @@ if  __name__ == "__main__":
         
 	model = WordVector(w2v_path = "../models/vectors.bin") 
 	model.evaluate(labeled_data_path = nationality_train, verbose=True)
-	model.train_and_save(nationality_train, "../models/freebase_nationality.mod")	
+	model.train_and_save(nationality_train, "../models/word2vec_nationality.mod")	
         print ""
 	
         
@@ -65,10 +65,11 @@ if  __name__ == "__main__":
         model = Ensemble(model_list = [modelWP, modelFP])
 	model.evaluate(labeled_data_path = profession_train, verbose=True)
 	model.train_and_save(profession_train, "../models/ensemble_profession.mod")	
+        
 
 	modelWN = WordVector(w2v_path = "../models/vectors.bin") 
         modelFN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=nationalities)
         model = Ensemble(model_list = [modelWN, modelFN])
 	model.evaluate(labeled_data_path = nationality_train, verbose=True)
-	model.train_and_save(nationality_train, "../models/freebase_nationality.mod")	
+	model.train_and_save(nationality_train, "../models/ensemble_nationality.mod")	
         print ""
