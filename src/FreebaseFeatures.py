@@ -8,6 +8,8 @@ import numpy as np
 import scipy.sparse as sps
 
 from _SupervisedBase import SupervisedBase
+from utils import *
+import cPickle
 
 class FreebaseFeatures(SupervisedBase):
 
@@ -19,7 +21,8 @@ class FreebaseFeatures(SupervisedBase):
 		self.features = shelve.open(freebase_features, 'r')
 
 		# Sample Freebase Id for Alfred Hitchcock
-		sample = self.features['m.0j_c']
+		print len(self.features)
+                sample = self.features['m.0j_c']
 		self.isSparse = sps.issparse(sample)
 
 		if self.isSparse:
@@ -28,7 +31,7 @@ class FreebaseFeatures(SupervisedBase):
 				self.feature_size = sample.size
 
 		self.mapping = {}
-		with open('../../triple-scoring/persons', 'r') as mapping_file:
+		with open('../data/persons', 'r') as mapping_file:
 			for line in mapping_file.xreadlines():
 				parts = line.strip().split('\t')
 				name = parts[0]
@@ -63,3 +66,13 @@ class FreebaseFeatures(SupervisedBase):
 				idx += 1
 
 		return X_feat
+	
+        def train_and_save(self,  labeled_data_path , save_path, X_path = None):
+		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
+		X = self.extract_features(pairs, X_path = X_path)
+		self.train(X, Y)
+		cPickle.dump(self.learner, open(save_path, "w"))
+
+	def load(self, load_path):
+		self.learner = cPickle.load(open(load_path, "r"))
+

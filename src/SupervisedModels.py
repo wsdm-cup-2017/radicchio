@@ -2,7 +2,7 @@ import numpy as np
 from _SupervisedBase import SupervisedBase
 from utils import *
 from gensim.models import word2vec
-
+import cPickle
 """
 This file implements several supervised learning models that inherit from the SupervisedBase.
 """
@@ -11,17 +11,21 @@ class AllZeroFeature(SupervisedBase):
 	Generate 2-dimensional features for each instance. 
 	All the features are 0.
 	"""
-	def extract_features(self, pairs):
+	def extract_features(self, pairs, X_path = None):
 		return np.zeros((len(pairs),2))
+	def train_and_save(self,  labeled_data_path , save_path, X_path = None):
+            pass
+	def load(self, load_path):
+            pass
 
 class WordVector(SupervisedBase):
 	"""
 	Use word vectors as features.
 	Currently, we only support loading fetaures from files.
 	"""
-	def __init__(self, w2v_path = "../models/vectors.txt"):
+	def __init__(self, w2v_path = "../models/vectors.bin"):
 		if w2v_path is not None:
-			self.w2v = word2vec.Word2Vec.load_word2vec_format(w2v_path)
+			self.w2v = word2vec.Word2Vec.load_word2vec_format(w2v_path, binary = True)
 			self.w2v_dim = self.w2v[self.w2v.vocab.keys()[0]].shape[0]
 		else:
 			self.w2v = None
@@ -40,10 +44,6 @@ class WordVector(SupervisedBase):
 		else:
 			X = np.load(X_path)
 
-		
-                #standardly scale features
-		#scaler = StandardScaler()
-		#X = scaler.fit_transform(X)
 		return X
 
 	def map_w2v(self, text):
@@ -61,3 +61,16 @@ class WordVector(SupervisedBase):
 			if cnt > 0:
 				vec /= cnt
 			return vec
+
+	def train_and_save(self,  labeled_data_path , save_path, X_path = None):
+		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
+		X = self.extract_features(pairs, X_path = X_path)
+		self.train(X, Y)
+		tmp = self.w2v
+		self.w2v = None
+		cPickle.dump((self.learner, self.scaler), open(save_path, "w"))
+		self.w2v = tmp
+
+	def load(self, load_path):
+		(self.learner, self.scaler) = cPickle.load(open(load_path, "r"))
+

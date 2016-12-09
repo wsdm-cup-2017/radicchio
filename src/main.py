@@ -1,6 +1,7 @@
 from UnsupervisedModels import AllMF, RandomGuess, MeanGuess
 from SupervisedModels import AllZeroFeature, WordVector
 from FreebaseFeatures import FreebaseFeatures
+from Ensemble import Ensemble
 import numpy as np
 import random
 
@@ -13,50 +14,61 @@ if  __name__ == "__main__":
 
 	random.seed(0)
 	np.random.seed(0)
+	
+        professions = read_one_column("../data/professions")
+	nationalities = read_one_column("../data/nationalities")
+        profession_train = "../data/profession.train"
+        nationality_train = "../data/nationality.train"
 
-	print "======== RandomGuess ======="
+        print "======== RandomGuess ======="
 	model = RandomGuess()
-	model.evaluate(verbose = False)
-	
-	"""
-	print "======== MeanGuess ======="
+	model.evaluate(labeled_data_path = profession_train, verbose=True)
+	model.evaluate(labeled_data_path = nationality_train, verbose=True)
+        print ""
+    	
+        print "======== MeanGuess ======="
 	model = MeanGuess()
-	model.evaluate()
+	model.evaluate(labeled_data_path = profession_train, verbose=True)
+	model.evaluate(labeled_data_path = nationality_train, verbose=True)
+        print ""
 
-	print "======== AllMF ======="
-	model = AllMF()
-	model.evaluate()
-	
 	print "======== AllZeroFeature ======="
 	model = AllZeroFeature()
-	model.evaluate()
-
-	professions = read_one_column("../data/professions")
-	nationalities = read_one_column("../data/nationalities")
+	model.evaluate(labeled_data_path = profession_train, verbose=True)
+	model.evaluate(labeled_data_path = nationality_train, verbose=True)
+        print ""
 	
 	print "======== Freebase IPCA ======="
-	model_professions = FreebaseFeatures(freebase_features="../freebase_features/features_ipca.bin", labels=professions)
-	model_professions.evaluate(labeled_data_path = "../data/profession.train", verbose=True)
+	model = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=professions)
+	model.evaluate(labeled_data_path = profession_train, verbose=True)
+	model.train_and_save(profession_train, "../models/freebase_profession.mod")	
 
-	model_nationality = FreebaseFeatures(freebase_features="../freebase_features/features_ipca.bin", labels=nationalities)
-	model_nationality.evaluate(labeled_data_path = "../data/nationality.train")
+	model = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=nationalities)
+	model.evaluate(labeled_data_path = nationality_train, verbose=True)
+	model.train_and_save(nationality_train, "../models/freebase_nationality.mod")	
+        print ""
 
-	"""
-	print "======== WordVector ======="
-	model = WordVector(w2v_path = None) 
-	model.evaluate(labeled_data_path = "../data/profession.train", X_path = "../data/X_profession.npy", verbose = True)
-	model.evaluate(labeled_data_path = "../data/nationality.train", X_path = "../data/X_nationality.npy", verbose = True)
+        print "======== WordVector ======="
+	model = WordVector(w2v_path = "../models/vectors.bin") 
+	model.evaluate(labeled_data_path = profession_train, verbose=True)
+	model.train_and_save(profession_train, "../models/word2vec_profession.mod")	
+        
+	model = WordVector(w2v_path = "../models/vectors.bin") 
+	model.evaluate(labeled_data_path = nationality_train, verbose=True)
+	model.train_and_save(nationality_train, "../models/freebase_nationality.mod")	
+        print ""
 	
-	modelP = WordVector(w2v_path = None) 
-	mod_path = "../models/profession.mod"
-	input_path = "../data/profession.train"
-	X_path = "../data/X_profession.npy"
-	modelP.train_and_save(input_path, mod_path, X_path = X_path)	
-	modelP.load(mod_path)
-	
-	modelN = WordVector(w2v_path = None) 
-	mod_path = "../models/nationality.mod"
-	input_path = "../data/nationality.train"
-	X_path = "../data/X_nationality.npy"
-	modelN.train_and_save(input_path, mod_path, X_path = X_path)	
-	modelN.load(mod_path)
+        
+	print "======== Ensemble ======="
+	modelWP = WordVector(w2v_path = "../models/vectors.bin") 
+	modelFP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=professions)
+        model = Ensemble(model_list = [modelWP, modelFP])
+	model.evaluate(labeled_data_path = profession_train, verbose=True)
+	model.train_and_save(profession_train, "../models/ensemble_profession.mod")	
+
+	modelWN = WordVector(w2v_path = "../models/vectors.bin") 
+        modelFN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=nationalities)
+        model = Ensemble(model_list = [modelWN, modelFN])
+	model.evaluate(labeled_data_path = nationality_train, verbose=True)
+	model.train_and_save(nationality_train, "../models/freebase_nationality.mod")	
+        print ""

@@ -3,7 +3,6 @@ from abc import ABCMeta, abstractmethod
 from utils import *
 from sklearn.svm import SVR, SVC
 from sklearn.preprocessing import StandardScaler
-import cPickle
 
 """
 This is the base abstract class for supervised models.
@@ -74,17 +73,13 @@ class SupervisedBase(object):
 		"""
 		raise NotImplementedError
 	
+	@abstractmethod
 	def train_and_save(self,  labeled_data_path , save_path, X_path = None):
-		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
-		X = self.extract_features(pairs, X_path = X_path)
-		self.train(X, Y)
-		tmp = self.w2v
-		self.w2v = None
-		cPickle.dump((self.learner, self.scaler), open(save_path, "w"))
-		self.w2v = tmp
-
+		raise NotImplementedError
+	
+        @abstractmethod
 	def load(self, load_path):
-		(self.learner, self.scaler) = cPickle.load(open(load_path, "r"))
+		raise NotImplementedError
 
 	def test(self, input_path, output_path):
 		"""

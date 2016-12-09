@@ -47,13 +47,28 @@ if __name__ == "__main__":
 	nationalities = read_one_column(os.path.join(args.inputDataset, "nationalities"))
 
 	#load models
-	w2v_path = os.path.join(args.modelDir, "vectors.txt")
-	modelP = WordVector(w2v_path = w2v_path) 
-	modelP.load(os.path.join(args.modelDir, "profession.mod"))
-	modelN = WordVector(w2v_path = None) 
-	modelN.w2v = modelP.w2v
-	modelN.w2v_dim = modelP.w2v_dim
-	modelN.load(os.path.join(args.modelDir, "nationality.mod"))
+        """
+	modelP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels="../data/professions")
+	modelP.load(os.path.join(args.modelDir, "freebase_profession.mod"))
+        modelN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels="../data/nationalities")
+	modelN.load(os.path.join(args.modelDir, "freebase_nationality.mod"))
+        
+	modelWP = WordVector(w2v_path = "../models/vectors.bin") 
+	modelFP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=professions)
+        modelP = Ensemble(model_list = [modelWP, modelFP])
+	modelP.load(os.path.join(args.modelDir, "ensemble_profession.mod"))
+	
+        modelWN = WordVector(w2v_path = "../models/vectors.bin") 
+        modelFN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=nationalities)
+        modelN = Ensemble(model_list = [modelWN, modelFN])
+	modelN.load(os.path.join(args.modelDir, "ensemble_nationality.mod"))
+	"""
+
+        modelP = WordVector(w2v_path = "../models/vectors.bin") 
+	modelP.load(os.path.join(args.modelDir, "word2vec_profession.mod"))
+	modelN = WordVector(w2v_path = "../models/vectors.bin") 
+	modelN.load(os.path.join(args.modelDir, "word2vec_nationality.mod"))
+        
         if args.inputFiles is not None:
             for input_path in args.inputFiles:
                     input_path = input_path[0]
@@ -63,26 +78,27 @@ if __name__ == "__main__":
                             modelP.test(input_path, os.path.join(args.outputDir, file_name))
                     elif input_type == "nationality":
                             modelN.test(input_path, os.path.join(args.outputDir, file_name))
-	if os.path.isfile(args.inputDataset):
-		file_name = os.path.split(args.inputDataset)[1]
-                file_path = args.inputDataset
-                input_type = check_type(file_path, professions, nationalities)
-                if input_type == "profession":
-                        modelP.test(file_path, os.path.join(args.outputDir, file_name))
-                elif input_type == "nationality":
-                        modelN.test(file_path, os.path.join(args.outputDir, file_name))
-	else:
-		for file_path in glob.glob(args.inputDataset + "/*.train"):
-		        file_name = os.path.split(file_path)[1]
-                        input_type = check_type(file_path, professions, nationalities)
-                        if input_type == "profession":
-                                modelP.test(file_path, os.path.join(args.outputDir, file_name))
-                        elif input_type == "nationality":
-                                modelN.test(file_path, os.path.join(args.outputDir, file_name))
-		for file_path in glob.glob(args.inputDataset + "/*.test"):
-		        file_name = os.path.split(file_path)[1]
-                        input_type = check_type(file_path, professions, nationalities)
-                        if input_type == "profession":
-                                modelP.test(file_path, os.path.join(args.outputDir, file_name))
-                        elif input_type == "nationality":
-                                modelN.test(file_path, os.path.join(args.outputDir, file_name))
+        else:	
+            if os.path.isfile(args.inputDataset):
+                    file_name = os.path.split(args.inputDataset)[1]
+                    file_path = args.inputDataset
+                    input_type = check_type(file_path, professions, nationalities)
+                    if input_type == "profession":
+                            modelP.test(file_path, os.path.join(args.outputDir, file_name))
+                    elif input_type == "nationality":
+                            modelN.test(file_path, os.path.join(args.outputDir, file_name))
+            else:
+                    for file_path in glob.glob(args.inputDataset + "/*.train"):
+                            file_name = os.path.split(file_path)[1]
+                            input_type = check_type(file_path, professions, nationalities)
+                            if input_type == "profession":
+                                    modelP.test(file_path, os.path.join(args.outputDir, file_name))
+                            elif input_type == "nationality":
+                                    modelN.test(file_path, os.path.join(args.outputDir, file_name))
+                    for file_path in glob.glob(args.inputDataset + "/*.test"):
+                            file_name = os.path.split(file_path)[1]
+                            input_type = check_type(file_path, professions, nationalities)
+                            if input_type == "profession":
+                                    modelP.test(file_path, os.path.join(args.outputDir, file_name))
+                            elif input_type == "nationality":
+                                    modelN.test(file_path, os.path.join(args.outputDir, file_name))

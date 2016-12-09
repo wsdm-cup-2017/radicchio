@@ -193,3 +193,20 @@ def train_test_split(X, Y, P, base, end):
 	testY = Y[base:end]
 	testP = P[base:end]
 	return trainX, trainY, testX, testY, trainP, testP
+
+def shufflePY(Y, pairs):
+	Y_shuffle = []
+	P_shuffle = []
+	index_shuffle = range(len(Y))
+	shuffle(index_shuffle)
+	for i in index_shuffle:
+		Y_shuffle.append(Y[i])
+		P_shuffle.append(pairs[i])
+	return Y_shuffle, P_shuffle
+
+def train_test_split_PY(Y, P, base, end):
+	trainY = Y[:base] + Y[end:]
+	trainP = P[:base] + P[end:]
+	testY = Y[base:end]
+	testP = P[base:end]
+	return trainY, testY, trainP, testP
