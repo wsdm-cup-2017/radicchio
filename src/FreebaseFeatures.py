@@ -20,7 +20,7 @@ class FreebaseFeatures(SupervisedBase):
 		self.features = shelve.open(freebase_features, 'r')
 
 		# Sample Freebase Id for Alfred Hitchcock
-                sample = self.features['m.0j_c']
+		sample = self.features['m.0j_c']
 		self.isSparse = sps.issparse(sample)
 
 		if self.isSparse:
@@ -65,7 +65,6 @@ class FreebaseFeatures(SupervisedBase):
 
 		return X_feat
 
-"""
 class FreebaseSimple(SupervisedBase):
 	def __init__(self, freebase_features, labels=None):
 		SupervisedBase.__init__(self)
@@ -73,8 +72,8 @@ class FreebaseSimple(SupervisedBase):
 		self.features = shelve.open(freebase_features, 'r')
 
 		# Sample Freebase Id for Alfred Hitchcock
-        sample = self.features['m.0j_c']
-        self.isSparse = sps.issparse(sample)
+		sample = self.features['m.0j_c']
+		self.isSparse = sps.issparse(sample)
 
 		if self.isSparse:
 			self.feature_size = sample.toarray().flatten().size
@@ -104,4 +103,3 @@ class FreebaseSimple(SupervisedBase):
 				idx += 1
 
 		return X_feat
-"""
