@@ -30,7 +30,7 @@ Botanist	scify
 Broadcaster	scify
 Bureaucrat	social
 Businessperson	work
-Cantor work
+Cantor	work
 Carpenter	work
 Cartoonist	book
 Choreographer	film
@@ -48,7 +48,7 @@ Costume Designer	film
 Critic	art
 Curator	art
 Dancer	film
-Diplomat social
+Diplomat	social
 Disc jockey	music
 Drummer	music
 Economist	scify
@@ -65,7 +65,7 @@ Explorer	social
 Farmer	work
 Fashion Designer	art
 Fashion Model	work
-Fighter pilot scify
+Fighter pilot	scify
 Film Art Director	film
 Film critic	film
 Film Director	film
@@ -78,7 +78,7 @@ Football player	sport
 Friar	chruch
 Game Show Host	film
 Guitarist	music
-Harpsichordist music
+Harpsichordist	music
 Historian	social
 Humorist	film
 Ice hockey player	sport
@@ -113,7 +113,7 @@ Music Arranger	music
 Music artist	music
 Music Director	music
 Musician	music
-Music Producer music
+Music Producer	music
 Neurologist	doc
 Novelist	book
 Orator	book
@@ -146,10 +146,10 @@ Professor	teacher
 Prophet	church
 Psychiatrist	doc
 Psychoanalyst	doc
-Psychologist doc
-Public speaker social
+Psychologist	doc
+Public speaker	social
 Publisher	book
-Rabbi church
+Rabbi	church
 Racing driver	sport
 Radio personality	Media
 Radio producer	Media
@@ -195,6 +195,6 @@ TV Personality	Media
 Urban planner	scify
 Violinist	music
 Violist	music
-Voice Actor film
+Voice Actor	film
 Warrior	social	
 Writer	book
