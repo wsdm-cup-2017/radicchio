@@ -63,7 +63,7 @@ class SupervisedBase(object):
 				self.learner[i].fit(X, copyY)
 
 	@abstractmethod
-	def extract_features(self, pairs):
+	def extract_features(self, pairs, X_path=None):
 		"""
 		You should formulate your extracted features as a 2-D Numpy array X.
 		For X, each row may epresents a feature vector of a (person-value) pair instance .
