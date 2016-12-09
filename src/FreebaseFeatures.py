@@ -93,13 +93,11 @@ class FreebaseSimple(SupervisedBase):
 		idx = 0
 		for (person, label) in pairs:
 			if person in self.mapping and self.mapping[person] in self.features:
-				pos = self.labels[label]
-
 				features_raw = self.features[self.mapping[person]]
 				if self.isSparse:
 					features_raw = features_raw.toarray()
 
-				X_feat[idx, :] += feature_raw
+				X_feat[idx, :] += features_raw.flatten()
 				idx += 1
 
 		return X_feat
