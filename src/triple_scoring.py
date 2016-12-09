@@ -54,7 +54,6 @@ if __name__ == "__main__":
 	modelP.load(os.path.join(args.modelDir, "freebase_profession.mod"))
         modelN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels= nationalities)
 	modelN.load(os.path.join(args.modelDir, "freebase_nationality.mod"))
-        """
 
 	modelWP = WordVector(w2v_path = "../models/vectors.bin") 
 	modelFP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=professions)
@@ -65,12 +64,12 @@ if __name__ == "__main__":
         modelFN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=nationalities)
         modelN = Ensemble(model_list = [modelWN, modelFN])
 	modelN.load(os.path.join(args.modelDir, "ensemble_nationality.mod"))
-	
+        """	
 
-        #modelP = WordVector(w2v_path = "../models/vectors.bin") 
-	#modelP.load(os.path.join(args.modelDir, "word2vec_profession.mod"))
-	#modelN = WordVector(w2v_path = "../models/vectors.bin") 
-	#modelN.load(os.path.join(args.modelDir, "word2vec_nationality.mod"))
+        modelP = WordVector(w2v_path = "../models/vectors.bin") 
+	modelP.load(os.path.join(args.modelDir, "word2vec_profession.mod"))
+	modelN = WordVector(w2v_path = "../models/vectors.bin") 
+	modelN.load(os.path.join(args.modelDir, "word2vec_nationality.mod"))
 
         if args.inputFiles is not None:
             for input_path in args.inputFiles:
