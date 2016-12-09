@@ -8,5 +8,5 @@ class CombinedModel(SupervisedBase):
                 self.models = models
 
         def extract_features(self, pairs, X_path):
-                return np.concatenate([m.extract_features(pairs, X_path) for m in self.models], axis=0)
+                return np.concatenate([m.extract_features(pairs, X_path) for m in self.models], axis=1)
 
