@@ -1,7 +1,8 @@
-from UnsupervisedModels import AllMF, RandomGuess, MeanGuess
+from UnsupervisedModels import AllMF, RandomGuess, MeanGuess, KnowledgeBaseWV
 from SupervisedModels import AllZeroFeature, WordVector
 from FreebaseFeatures import FreebaseFeatures
 from Ensemble import Ensemble
+from CombinedModel import CombinedModel
 import numpy as np
 import random
 
@@ -19,7 +20,8 @@ if  __name__ == "__main__":
 	nationalities = read_one_column("../data/nationalities")
         profession_train = "../data/profession.train"
         nationality_train = "../data/nationality.train"
-
+        
+        """
         print "======== RandomGuess ======="
 	model = RandomGuess()
 	model.evaluate(labeled_data_path = profession_train, verbose=True)
@@ -73,3 +75,22 @@ if  __name__ == "__main__":
 	model.evaluate(labeled_data_path = nationality_train, verbose=True)
 	model.train_and_save(nationality_train, "../models/ensemble_nationality.mod")	
         print ""
+        """
+	
+        """
+        modelWP = WordVector(w2v_path = "../models/vectors.bin") 
+	modelFP = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=professions)
+        model = CombinedModel(model_list = [modelWP, modelFP])
+        model.evaluate(labeled_data_path = profession_train, verbose=False)
+        
+	modelWP = WordVector(w2v_path = "../models/vectors.bin") 
+        modelFN = FreebaseFeatures(freebase_features="../data/freebase_features/features_ipca.bin", labels=nationalities)
+        model = CombinedModel(model_list = [modelWN, modelFN])
+	model.evaluate(labeled_data_path = nationality_train, verbose=True)
+	model.train_and_save(nationality_train, "../models/ensemble_nationality.mod")	
+        """
+	
+        #model = KnowledgeBaseWV("../data/nationality.kb.train",w2v_path = "../models/vectors.bin") 
+	#model.evaluate(labeled_data_path = nationality_train, verbose = True)
+        model = KnowledgeBaseWV("../data/profession.kb.train",w2v_path = "../models/vectors.bin") 
+	model.evaluate(labeled_data_path = profession_train, verbose = True)

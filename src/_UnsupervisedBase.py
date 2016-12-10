@@ -34,16 +34,22 @@ class UnsupervisedBase(object):
 	@abstractmethod
 	def train(self):
 		raise NotImplementedError
+        
+        def scale_prediction(self, Y , pairs):
+	    
+            Ps = [[]]
+            for y, pair in zip(Y, pairs):
+                if len(Ps[-1]) == 0 or Ps[-1][0][1] == pair[0]:
+                    Ps[-1].append((y, pair[0]))
+                else:
+                    Ps.append([(y, pair[0])])
+            scaledY = []
+            for group in Ps:
+                max_y = max([y for y, p in group])
+                for y, p in group:
+                    scaledY.append(int(round(float(y) / max_y *7)))
+            return np.array(scaledY)
 
-	@abstractmethod
-	def extract_features(self):
-		"""
-		1. Read the data 
-		2. Extract features
-		3. Store the features in this object 
-		"""
-		raise NotImplementedError
-	
 	def test(self, input_path, output_path):
 		"""
 		Read from the input path and ouput the prediction to the output path.
@@ -59,9 +65,6 @@ class UnsupervisedBase(object):
 			 	out_f.write("%s\t%s\t%d\n" %(name, value, int(round(Y[i]))))
 	
 	def evaluate(self, labeled_data_path = "../data/profession.train", verbose = False): 
-		
-		#read the data and extract features
-		self.extract_features()
 		
 		#training
 		self.train()

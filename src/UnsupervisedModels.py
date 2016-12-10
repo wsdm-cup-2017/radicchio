@@ -4,7 +4,9 @@ from scipy.sparse import lil_matrix
 from scipy import spatial 
 from sklearn.decomposition import NMF
 from utils import *
-from sklearn.svm import SVR
+from sklearn.linear_model import LogisticRegression as LR
+from sklearn.svm import SVR, SVC
+from sklearn.ensemble import RandomForestClassifier as RFC
 from gensim.models import word2vec
 from sklearn.preprocessing import StandardScaler
 
@@ -40,18 +42,10 @@ class AllMF(UnsupervisedBase):
             preds.append(pred)
         return np.array(preds)
     
-    def train(self):
+    def train(self, path = "../data/profession.kb"):
         """
         Use NMF for training.
         Note that this is very memory-comsuming when our matrix is quite large.
-        """
-        model = NMF(n_components = 15, max_iter = 1000)
-        self.W = model.fit_transform(self.M)
-        self.H = model.components_.T
-    
-    def extract_features(self, path = "../data/profession.kb"):
-        """
-        Build the person-value matrix.
         """
         M = lil_matrix((len(self.N_map), len(self.V_map)))
         with open(path, "r") as f:
@@ -59,7 +53,10 @@ class AllMF(UnsupervisedBase):
                 (name, value) = line.strip().split("\t")
                 M[self.N_map[name], self.V_map[value]] = 1
         self.M = M
-
+        model = NMF(n_components = 15, max_iter = 1000)
+        self.W = model.fit_transform(self.M)
+        self.H = model.components_.T
+    
 class RandomGuess(UnsupervisedBase):
     """
     Randomly predict an ineger from 0 to 7.
@@ -67,8 +64,6 @@ class RandomGuess(UnsupervisedBase):
     def predict(self, pairs):
         return np.array([np.random.randint(8) for i in range(len(pairs))])
     def train(self):
-        pass
-    def extract_features(self):
         pass
 
 class MeanGuess(UnsupervisedBase):
@@ -79,60 +74,39 @@ class MeanGuess(UnsupervisedBase):
         return np.array([3.5 for i in range(len(pairs))])
     def train(self):
         pass
-    def extract_features(self):
-        pass
-class ZeroSeven(UnsupervisedBase):
-    def __init__(self, label_path):
-        self.labeled_data_path = label_path
-        pairs, Y = read_labeled_data(labeled_data_path = self.labeled_data_path)
-    def predict(self, pairs):
-    def train(self):
-        
-    def extract_features(self):
-        pass
-    def normalize_prediction(self, Y):
-	Y[Y > 7] = 7
-	Y[Y < 0] = 0
-	return np.array(map(lambda x : int(round(x)), Y))
     
-class ZeroSevenWV(UnsupervisedBase):
-    def __init__(self, label_path, w2v_path = "../models/vectors.bin"):
-	self.w2v = word2vec.Word2Vec.load_word2vec_format(w2v_path, binary = True)
+class KnowledgeBaseWV(UnsupervisedBase):
+    def __init__(self, knowledge_base_path, w2v_path = "../models/vectors.bin"):
+        self.w2v = word2vec.Word2Vec.load_word2vec_format(w2v_path, binary = True)
 	self.w2v_dim = self.w2v[self.w2v.vocab.keys()[0]].shape[0]
 	UnsupervisedBase.__init__(self)
-        self.labeled_data_path = label_path
-	self.learner = SVR(kernel = "rbf", C = 1)
+        self.knowledge_base_path = knowledge_base_path
+        self.learner = RFC(n_estimators = 1000, max_depth = 15, n_jobs = -1)
+        #self.learner = SVC(kernel = "rbf", C = 10, probability = True) 
+        #self.learner = LR(C = 10, max_iter = 1000) 
 
-    def extract_features(self, pairs = None):
-        if pairs is None:
-	    pairs, Y = read_labeled_data(labeled_data_path = self.labeled_data_path)
+    def extract_features(self, pairs):
 	X = []
         for pair in pairs:
 	    vec1 = self.map_w2v(pair[0])
 	    vec2 = self.map_w2v(pair[1])
 	    x = np.hstack((vec1, vec2))
 	    X.append(x)
-	X = np.array(X)
-        self.X = X
-
+	return  np.array(X)
+        
     def train(self):
         self.scaler = StandardScaler()
-	pairs, Y = read_labeled_data(labeled_data_path = self.labeled_data_path)
-	X = self.scaler.fit_transform(self.X)
+	pairs, Y = read_labeled_data(labeled_data_path = self.knowledge_base_path)
+	X = self.extract_features(pairs)
+        X = self.scaler.fit_transform(X)
 	self.learner.fit(X, Y)
     
-    def normalize_prediction(self, Y):
-	Y[Y > 7] = 7
-	Y[Y < 0] = 0
-	return np.array(map(lambda x : int(round(x)), Y))
-    
     def predict(self, pairs):
-	pairs, Y = read_labeled_data(labeled_data_path = self.labeled_data_path)
-        self.extract_features(pairs)
-        X = self.scaler.transform(self.X)
-	return self.normalize_prediction( self.learner.predict(X))
+        X = self.extract_features(pairs)
+        X = self.scaler.transform(X)
+        Y = self.learner.predict_proba(X)[:, 1]
+	return self.scale_prediction(Y, pairs)
         
-
     def map_w2v(self, text):
 	term = normalize(text)
 	word = "_".join(term)
@@ -149,13 +123,7 @@ class ZeroSevenWV(UnsupervisedBase):
 		vec /= cnt
 	    return vec
 
-    def train_and_save(self):
-	X = self.extract_features(pairs, X_path = X_path)
-	self.train(X, Y)
-	tmp = self.w2v
-	self.w2v = None
-	cPickle.dump((self.learner, self.scaler), open(save_path, "w"))
-	self.w2v = tmp
-    def load(self, load_path):
-	(self.learner, self.scaler) = cPickle.load(open(load_path, "r"))
-
+class KnowledgeBaseLearnersWV(KnowledgeBaseWV):
+    def __init__(self, knowledge_base_path, all_values_path, w2v_path = "../models/vectors.bin"):
+        values = read_one_column(all_values_path)
+        UnsupervisedBase.__init__(self)
