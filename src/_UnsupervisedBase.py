@@ -69,6 +69,9 @@ class UnsupervisedBase(object):
 		#predicting
 		pairs, Y = read_labeled_data(labeled_data_path = labeled_data_path)
 		predY = self.predict(pairs)
+		if verbose is True:
+		    for py, y, p in zip(predY, Y, pairs):
+			print ", ".join(p).ljust(50) , "True:", y, "/ Predicted:", py
 		score1 = []
 		score2 = []
 		prev_group = None

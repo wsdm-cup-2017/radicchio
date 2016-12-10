@@ -1,15 +1,35 @@
 import cPickle
 import numpy as np
 from utils import *
+from sklearn.svm import SVR
 
 class Ensemble(object):
     def __init__(self, model_list):
         self.model_list = model_list       
+	self.weighter = SVR(kernel = "linear", C = 1)
     
     def train(self, pairs, Y):
+        enY = []
+        split = int(len(pairs)*0.66)
+        trainP = pairs[:split]
+        validP = pairs[split:]
+        trainY = Y[:split]
+        validY = Y[split:]
+        for model in self.model_list:
+            trainX = model.extract_features(trainP)
+            model.train(trainX, trainY)
+            validX = model.extract_features(validP)
+            predY = model.predict(validX)
+            enY.append(predY)
+        enY = np.array(enY).T
+        self.weighter.fit(enY, validY)
+        
         for model in self.model_list:
             X = model.extract_features(pairs)
             model.train(X, Y)
+            
+    def reset(self, kernel, C):
+	self.weighter = SVR(kernel = kernel, C = C)
 
     def predict(self, pairs):
         Ys = []
@@ -18,6 +38,8 @@ class Ensemble(object):
             Y = model.predict(X)
             Ys.append(Y)
         Y = np.array(Ys).mean(axis = 0)
+        #Ys = np.array(Ys).T
+        #Y = self.weighter.predict(Ys)
         return self.normalize_prediction(Y)
 
     def normalize_prediction(self, Y):
