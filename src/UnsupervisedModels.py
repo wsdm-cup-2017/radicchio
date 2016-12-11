@@ -9,6 +9,7 @@ from sklearn.svm import SVR, SVC
 from sklearn.ensemble import RandomForestClassifier as RFC
 from gensim.models import word2vec
 from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier as DTC
 
 class AllMF(UnsupervisedBase):
     """
@@ -126,4 +127,40 @@ class KnowledgeBaseWV(UnsupervisedBase):
 class KnowledgeBaseLearnersWV(KnowledgeBaseWV):
     def __init__(self, knowledge_base_path, all_values_path, w2v_path = "../models/vectors.bin"):
         values = read_one_column(all_values_path)
-        UnsupervisedBase.__init__(self)
+        KnowledgeBaseWV.__init__(self, knowledge_base_path)
+        #self.learners = {v:SVC(kernel = "linear", C = 10, probability = True) for v in values}
+        self.learners = {v: RFC(n_estimators = 100, max_depth = 15, n_jobs = -1) for v in values}
+        self.scalers = {v:StandardScaler() for v in values}
+         
+    def train(self):
+        Ps = {v:[] for v in self.learners.keys()}
+        pairs, Y = read_labeled_data(labeled_data_path = self.knowledge_base_path)
+        for pair , y in zip(pairs, Y):
+            Ps[pair[1]].append((pair[0], y))
+        for value in Ps.keys():
+            X = self.extract_features([p[0] for p in Ps[value]])
+            self.scalers[value].fit_transform(X)
+            try:
+                self.learners[value].fit(X, np.array([p[1] for p in Ps[value]]))
+            except:
+                pass
+    def extract_features(self, persons):
+	X = []
+        for p in persons:
+	    x = self.map_w2v(p)
+	    X.append(x)
+	return  np.array(X)
+        
+    def predict(self, pairs):
+        persons = [p[0] for p in pairs]
+        X = self.extract_features(persons)
+        Y = []
+        for x, pair in zip(X, pairs):
+            X = self.scalers[pair[1]].transform(x.reshape(1, -1))
+            try:
+                y = self.learners[pair[1]].predict_proba(X)[0, 1]
+            except:
+                y = 1
+            Y.append(y)
+        Y = np.array(Y) 
+        return self.scale_prediction(Y, pairs)
